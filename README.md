@@ -2,7 +2,7 @@
 
 ## Dataset Description
 
-We use the public dataset from the 2024 Stack Overflow Developer Survey, which collected responses from over 65,000 developers worldwide ([survey.stackoverflow.co](https://survey.stackoverflow.co)). For this project, the data was filtered to focus on **U.S. respondents with valid salary data**.
+I use the public dataset from the 2024 Stack Overflow Developer Survey, which collected responses from over 65,000 developers worldwide ([survey.stackoverflow.co](https://survey.stackoverflow.co)). For this project, the data was filtered to focus on **U.S. respondents with valid salary data**.
 
 The dataset includes cleaned and encoded features representing developer roles, education level, years of experience, company size, and remote work status. For example, raw survey entries like `DevType`, `EdLevel`, `YearsCodePro`, and `OrgSize` were transformed into structured categories like `dev_type_grouped`, `ed_level_label`, `years_code_pro`, `org_size_label`, etc. The target variable is **annual compensation** (`ConvertedCompYearly`), standardized to USD.
 
@@ -10,7 +10,7 @@ The dataset includes cleaned and encoded features representing developer roles, 
 
 ## Modeling Approach
 
-We tested multiple regression algorithms, including:
+I tested multiple regression algorithms, including:
 
 - Linear Regression  
 - Random Forest  
