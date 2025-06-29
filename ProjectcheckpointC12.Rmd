@@ -1,0 +1,202 @@
+---
+title: "Untitled"
+author: "Joubin Zahrir"
+date: "2025-06-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(catboost)
+library(ggplot2)
+library(dplyr)
+
+# Load dataset
+df <- read.csv("survey_us_salary_filtered.csv", stringsAsFactors = FALSE)
+
+# Convert specified categorical columns to factors
+cat_cols <- c(
+  "main_branch_label", "age_label", "remote_work_label",
+  "ed_level_label", "dev_type_label", "org_size_label",
+  "purchase_influence_label"
+)
+df[cat_cols] <- lapply(df[cat_cols], factor)
+
+# Filter out NAs only in modeling columns
+df <- df %>%
+  filter(
+    !is.na(years_code_pro),
+    !is.na(dev_type_label),
+    !is.na(org_size_label),
+    !is.na(ed_level_label),
+    !is.na(remote_work_label)
+  )
+
+# Assign "Other" to rare developer types
+df$dev_type_grouped <- dplyr::case_when(
+  df$dev_type_label %in% c(
+    "Blockchain", "Marketing or sales professional",
+    "Project manager", "Product manager",
+    "Student", "Educator", "Developer Advocate",
+    "Developer Experience", "Database administrator",
+    "Designer", "Hardware Engineer"
+  ) ~ "Other",
+  TRUE ~ as.character(df$dev_type_label)
+)
+df$dev_type_grouped <- as.factor(df$dev_type_grouped)
+```
+
+```{r}
+# Create seniority bucket
+df$seniority_bucket <- cut(
+  df$years_code_pro,
+  breaks = c(-Inf, 2, 5, 10, 20, Inf),
+  labels = c("Junior", "EarlyMid", "Mid", "Senior", "Expert")
+)
+df$seniority_bucket <- as.factor(df$seniority_bucket)
+```
+
+```{r}
+df <- df %>%
+  filter(ed_level_label != "Something else") %>%
+  droplevels()
+table(df$ed_level_label, useNA = "ifany")
+
+```
+
+```{r}
+df$org_size_label <- dplyr::case_when(
+  df$org_size_label == "I don’t know" ~ "100 to 499 employees",
+  TRUE ~ as.character(df$org_size_label)
+)
+
+# Re-factor
+df$org_size_label <- factor(df$org_size_label)
+table(df$org_size_label, useNA = "ifany")
+
+```
+
+```{r}
+df$ed_level_label <- dplyr::case_when(
+  df$ed_level_label %in% c(
+    "Primary/elementary school",
+    "Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)"
+  ) ~ "Secondary or less",
+  TRUE ~ as.character(df$ed_level_label)
+)
+
+# Re-factor to clean up levels
+df$ed_level_label <- factor(df$ed_level_label)
+```
+
+```{r}
+# Create the interaction variable
+df$seniority_remote <- interaction(
+  df$seniority_bucket,
+  df$remote_work_label,
+  sep = "."
+)
+
+# Make sure it's a factor
+df$seniority_remote <- as.factor(df$seniority_remote)
+
+# Inspect the result to verify
+table(df$seniority_remote)
+
+```
+```{r}
+# Squared years of experience
+df$years_code_pro_sq <- df$years_code_pro^2
+
+```
+
+```{r}
+
+df$seniority_orgsize <- interaction(
+  df$seniority_bucket,
+  df$org_size_label,
+  sep = "."
+)
+
+# Ensure it's a factor
+df$seniority_orgsize <- as.factor(df$seniority_orgsize)
+
+# Inspect counts per combination
+cat("\n=== Frequency of seniority_orgsize ===\n")
+print(table(df$seniority_orgsize))
+
+```
+
+```{r}
+# Define features
+
+features <- c(
+  "years_code_pro_sq",
+  "dev_type_grouped",
+  "org_size_label",
+  "ed_level_label",
+  "remote_work_label",
+  "seniority_bucket",
+  "seniority_remote",
+  "seniority_orgsize"
+)
+
+# Train-test split
+set.seed(123)
+train_index <- sample(nrow(df), 0.8 * nrow(df))
+train <- df[train_index, ]
+test <- df[-train_index, ]
+
+# Create CatBoost Pools (using raw salary)
+train_pool <- catboost.load_pool(
+  data = train[features],
+  label = train$converted_comp_yearly
+)
+
+test_pool <- catboost.load_pool(
+  data = test[features],
+  label = test$converted_comp_yearly
+)
+
+# Model parameters - TUNED
+params <- list(
+  loss_function = "RMSE",       
+  iterations = 2000,            # longer training
+  depth = 10,                   # deeper trees
+  learning_rate = 0.005,        # slower learning
+  eval_metric = "RMSE",
+  random_seed = 123,
+  early_stopping_rounds = 200,  # longer patience
+  verbose = 100                 # show progress every 100 iterations
+)
+
+# Train the model
+model <- catboost.train(train_pool, test_pool, params = params)
+
+# Predict
+pred <- catboost.predict(model, test_pool)
+
+# Evaluate
+SSE <- sum((test$converted_comp_yearly - pred)^2)
+SST <- sum((test$converted_comp_yearly - mean(test$converted_comp_yearly))^2)
+R2 <- 1 - SSE/SST
+RMSE <- sqrt(mean((test$converted_comp_yearly - pred)^2))
+cat("R^2 =", round(R2, 3), "   RMSE =", round(RMSE, 0), "\n")
+
+# Feature importance
+importance <- catboost.get_feature_importance(model, pool = train_pool)
+importance_df <- data.frame(Feature = features, Importance = importance)
+importance_df <- importance_df[order(-importance_df$Importance), ]
+
+ggplot(importance_df, aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_col(fill = "#4682B4") +
+  coord_flip() +
+  labs(title = "Feature Importance", x = "Feature", y = "Importance")
+
+```
+
+
+
