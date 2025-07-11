@@ -1,109 +1,91 @@
 # Developer Salary Prediction (Stack Overflow 2024 Survey)
 
-## What This Project Does
+## Project Overview
 
-This project builds a machine learning model to predict developers’ annual compensation using responses from the 2024 Stack Overflow Developer Survey.  
-It combines **data cleaning**, **feature engineering**, and **CatBoost regression** to explore how factors such as experience, education, role, company size, and work arrangement relate to salary.
+This project builds a machine learning model to predict developers’ annual compensation in the United States, using data from the 2024 Stack Overflow Developer Survey. It applies XGBoost regression along with data preprocessing and basic feature engineering to understand how factors such as experience, education, developer role, company size, and remote work status influence salary.
 
-Specifically, the project:
+The R Markdown file used for this analysis is named `Final_code.Rmd`.
 
-- Loads and preprocesses survey data.
-- Cleans and encodes categorical variables.
-- Engineers new features (e.g., years of experience squared, interaction variables).
-- Splits data into training and test sets.
-- Trains a CatBoost regression model.
-- Evaluates prediction performance (R², RMSE).
-- Visualizes feature importance.
+### Key Project Steps
 
-This approach demonstrates how to apply a tree-based model to real-world survey data.
+- Load and filter the raw survey dataset
+- Retain only U.S.-based responses with valid salary data
+- Encode categorical variables as factors
+- Engineer a squared experience term (`years_code_pro_sq`) to capture nonlinear effects
+- Split the data into training and testing sets (80/20)
+- Train an XGBoost regression model with tuned hyperparameters
+- Evaluate model performance using R² and RMSE
+
+Note: While feature importance was computed during modeling, no visualizations of feature importance were included in this version.
+
+The main goal of this project was to develop a Shiny app that allows users to input key features and receive a predicted salary based on the trained model.
 
 ---
 
 ## Dataset Description
 
-This project uses the public dataset from the 2024 Stack Overflow Developer Survey, which collected responses from over 65,000 developers worldwide ([survey.stackoverflow.co](https://survey.stackoverflow.co)).  
-For this analysis, the data was filtered to focus on **U.S. respondents with valid salary data**.
+This project uses the public dataset from the 2024 Stack Overflow Annual Developer Survey, which gathered responses from over 65,000 developers worldwide in May 2024.
 
-The dataset includes encoded features representing developer roles, education, years of experience, company size, and remote work status.  
-Additional **engineered features** were created to improve predictive power, such as experience squared and interaction terms.
+For this project, the dataset was filtered to include:
+- Only respondents from the United States
+- Only responses with non-missing salary values
+
+After cleaning and filtering, the final dataset contained over 4,400 responses.
+
+Key variables used in the model:
+- `years_code_pro` — Years of professional coding experience
+- `dev_type_label` — Developer role
+- `ed_level_label` — Education level
+- `org_size_label` — Company size
+- `remote_work_label` — Work arrangement
+- `years_code_pro_sq` — Experience squared (engineered feature)
 
 ---
 
 ## Modeling Approach
 
-I tested several regression algorithms and selected **CatBoost**, which is well-suited to handling categorical variables and capturing nonlinear relationships.
+### Why XGBoost?
 
-**Key modeling details:**
+After testing various regression models, XGBoost was selected due to its:
+- Ability to handle categorical and numeric variables (after appropriate preprocessing)
+- Capacity to model nonlinear relationships
+- Strong performance with imbalanced and noisy survey data
 
-- **Algorithm:** CatBoost Regressor
-- **Hyperparameters:**
-  - `iterations = 2000`
-  - `learning_rate = 0.005`
-  - `depth = 10`
-  - `early_stopping_rounds = 200`
-- **Train/test split:** 80/20
+### Model Configuration
 
-After tuning and feature engineering, the model achieved:
+- Algorithm: XGBoost Regressor
+- Train/Test Split: 80/20
+- Engineered Feature: `years_code_pro_sq` (experience squared)
 
-- **R² = 0.319** (explains ~31.9% of salary variance)
-- **RMSE ≈ $57,385**
+### Performance Metrics
 
-This performance demonstrates the model captures meaningful relationships but also reflects the complexity and variability of compensation data.
+- R²: 0.319 (explains approximately 31.9% of the variance in salaries)
+- RMSE: ~$57,385
 
----
-
-## Key Features Used
-
-The final model included these predictors:
-
-- `years_code_pro_sq` – Years of professional experience squared
-- `dev_type_grouped` – Developer role (grouped, rare roles as "Other")
-- `org_size_label` – Company size (e.g., "10–19 employees")
-- `ed_level_label` – Education level (e.g., Bachelor’s, Master’s)
-- `remote_work_label` – Remote, Hybrid, or In-person
-- `seniority_bucket` – Derived seniority (Junior, Mid, Senior)
-- `seniority_remote` – Interaction: seniority × remote status
-- `seniority_orgsize` – Interaction: seniority × company size
-
-Feature importance analysis indicated that experience, developer type, and seniority interactions were the most influential factors in predicting salary.
+The relatively modest R² is expected given the nature of the survey data, which contains many categorical variables and other unobserved factors that influence compensation. Despite this, the model identifies important patterns and provides a meaningful basis for interactive prediction.
 
 ---
 
-## Instructions to Run
+## Shiny App Deployment
 
-1. **Install Libraries**
+This model is deployed in a live Shiny application. Users can enter their information (role, education, experience, company size, work setup) to estimate their expected salary based on the trained model.
 
-   In R:
-   ```r
-   install.packages(c("catboost", "ggplot2", "dplyr"))
-   ```
-
-2. **Load Data**
-
-   Use the provided `survey_us_salary_filtered.csv`.
-
-3. **Run Model**
-
-   - Preprocess data (factor encoding, feature engineering)
-   - Split into training and testing sets
-   - Train CatBoost with tuned parameters
-   - Evaluate performance using R² and RMSE
-
-4. **Interpret Results**
-
-   - Review feature importance plots
-   - Analyze prediction accuracy and error patterns
+Use the app here:  
+**[Launch Salary Predictor](https://huggingface.co/spaces/joooobin/salary-predictor-shiny)**
 
 ---
 
-## Code Files
+## Data Source and Metadata
 
-- `ProjectcheckpointC12.Rmd` – Final modeling and feature engineering notebook
-- `survey_us_salary_filtered.csv` – Cleaned dataset used for modeling
+This dataset was curated as part of the #TidyTuesday project. The data includes:
+- 65,000+ developer responses
+- Cleaned single-response questions
+- Integer-encoded variables with label mappings via a crosswalk file
 
----
+More information and raw data files are available on the TidyTuesday GitHub repository:  
+https://github.com/rfordatascience/tidytuesday/tree/master/data/2024/2024-09-03
 
-## Notes
-
-This project demonstrates an applied approach to salary prediction using real-world survey data and machine learning.  
-It can be extended by incorporating additional features (e.g., geographic location, technology stack) or experimenting with different model architectures.
+Key files:
+- `stackoverflow_survey_single_response.csv`: Main dataset used
+- `qname_levels_single_response_crosswalk.csv`: Categorical value labels
+- `stackoverflow_survey_questions.csv`: Full list of survey questions
