@@ -1,0 +1,244 @@
+---
+title: "Untitled"
+author: "Joubin Zahrir"
+date: "2025-07-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(xgboost)
+library(vetiver)
+library(pins)
+```
+
+```{r}
+# Load dataset
+df <- read.csv(
+  "C:/Users/joooo/OneDrive/Desktop/MSBA/Second semester/DC816/Check point C/survey_us_salary_filtered.csv",
+  stringsAsFactors = FALSE
+)
+
+# Convert specified columns to factors
+cat_cols <- c(
+  "main_branch_label", "age_label", "remote_work_label",
+  "ed_level_label", "dev_type_label", "org_size_label",
+  "purchase_influence_label"
+)
+df[cat_cols] <- lapply(df[cat_cols], factor)
+```
+
+```{r}
+# Remove rows with NA in modeling columns
+df <- df %>%
+  filter(
+    !is.na(years_code_pro),
+    !is.na(dev_type_label),
+    !is.na(org_size_label),
+    !is.na(ed_level_label),
+    !is.na(remote_work_label)
+  )
+
+# Remove 'Something else' in education
+df <- df %>%
+  filter(ed_level_label != "Something else") %>%
+  droplevels()
+
+```
+
+```{r}
+# Group rare developer types under "Other"
+df$dev_type_grouped <- dplyr::case_when(
+  df$dev_type_label %in% c(
+    "Blockchain", "Marketing or sales professional",
+    "Project manager", "Product manager",
+    "Student", "Educator", "Developer Advocate",
+    "Developer Experience", "Database administrator",
+    "Designer", "Hardware Engineer"
+  ) ~ "Other",
+  TRUE ~ as.character(df$dev_type_label)
+)
+df$dev_type_grouped <- as.factor(df$dev_type_grouped)
+
+```
+
+```{r}
+# Clean org size
+df$org_size_label <- dplyr::case_when(
+  df$org_size_label == "I don’t know" ~ "100 to 499 employees",
+  TRUE ~ as.character(df$org_size_label)
+)
+df$org_size_label <- factor(df$org_size_label)
+
+# Simplify education level
+df$ed_level_label <- dplyr::case_when(
+  df$ed_level_label %in% c(
+    "Primary/elementary school",
+    "Secondary school (e.g. American high school, German Realschule or Gymnasium, etc.)"
+  ) ~ "Secondary or less",
+  TRUE ~ as.character(df$ed_level_label)
+)
+df$ed_level_label <- factor(df$ed_level_label)
+
+```
+
+```{r}
+# Squared years of experience
+df$years_code_pro_sq <- df$years_code_pro^2
+
+```
+
+```{r}
+# Define features
+features <- c(
+  "years_code_pro_sq",
+  "dev_type_grouped",
+  "org_size_label",
+  "ed_level_label",
+  "remote_work_label"
+)
+# Force all levels in categorical variables BEFORE splitting data
+
+df$dev_type_grouped <- factor(
+  df$dev_type_grouped,
+  levels = c(
+    "Academic researcher",
+    "Cloud infrastructure engineer",
+    "Data engineer",
+    "Data or business analyst",
+    "Data scientist or machine learning specialist",
+    "Developer, AI",
+    "Developer, back-end",
+    "Developer, desktop or enterprise applications",
+    "Developer, embedded applications or devices",
+    "Developer, front-end",
+    "Developer, full-stack",
+    "Developer, game or graphics",
+    "Developer, mobile",
+    "Developer, QA or test",
+    "DevOps specialist",
+    "Engineer, site reliability",
+    "Engineering manager",
+    "Other",
+    "Research & Development role",
+    "Scientist",
+    "Security professional",
+    "Senior Executive (C-Suite, VP, etc.)",
+    "System administrator"
+  )
+)
+
+df$org_size_label <- factor(
+  df$org_size_label,
+  levels = c(
+    "Just me - I am a freelancer, sole proprietor, etc.",
+    "2 to 9 employees",
+    "10 to 19 employees",
+    "20 to 99 employees",
+    "100 to 499 employees",
+    "500 to 999 employees",
+    "1,000 to 4,999 employees",
+    "5,000 to 9,999 employees",
+    "10,000 or more employees"
+  )
+)
+
+df$ed_level_label <- factor(
+  df$ed_level_label,
+  levels = c(
+    "Associate degree (A.A., A.S., etc.)",
+    "Bachelor’s degree (B.A., B.S., B.Eng., etc.)",
+    "Master’s degree (M.A., M.S., M.Eng., MBA, etc.)",
+    "Professional degree (JD, MD, Ph.D, Ed.D, etc.)",
+    "Secondary or less",
+    "Some college/university study without earning a degree"
+  )
+)
+
+df$remote_work_label <- factor(
+  df$remote_work_label,
+  levels = c(
+    "Remote",
+    "Hybrid (some remote, some in-person)",
+    "In-person"
+  )
+)
+
+# Train-test split
+set.seed(123)
+train_index <- sample(nrow(df), 0.8 * nrow(df))
+train <- df[train_index, ]
+test <- df[-train_index, ]
+
+# One-hot encode for XGBoost
+X_train <- model.matrix(~ . -1, data = train[, features])
+X_test  <- model.matrix(~ . -1, data = test[, features])
+
+# Target variable
+y_train <- train$converted_comp_yearly
+y_test  <- test$converted_comp_yearly
+
+# DMatrix
+dtrain <- xgb.DMatrix(data = X_train, label = y_train)
+dtest  <- xgb.DMatrix(data = X_test, label = y_test)
+
+```
+
+```{r}
+# Model parameters
+params <- list(
+  objective = "reg:squarederror",
+  eval_metric = "rmse",
+  eta = 0.005,
+  max_depth = 10,
+  subsample = 0.8,
+  colsample_bytree = 0.8
+)
+
+# Train with early stopping
+watchlist <- list(train = dtrain, eval = dtest)
+model_xgb <- xgb.train(
+  params = params,
+  data = dtrain,
+  nrounds = 2000,
+  watchlist = watchlist,
+  early_stopping_rounds = 200,
+  print_every_n = 100
+)
+
+```
+
+```{r}
+# Predictions
+pred <- predict(model_xgb, dtest)
+
+# Metrics
+SSE <- sum((y_test - pred)^2)
+SST <- sum((y_test - mean(y_test))^2)
+R2 <- 1 - SSE / SST
+RMSE <- sqrt(mean((y_test - pred)^2))
+cat("R^2 =", round(R2, 3), "   RMSE =", round(RMSE, 0), "\n")
+
+```
+
+```{r}
+# Save locally
+saveRDS(model_xgb, "xgboost_salary_model.rds")
+
+# Create vetiver model object
+v <- vetiver_model(model_xgb, model_name = "salary-predictor")
+
+# Create local board to pin
+b <- board_folder("my-pins")
+
+# Pin the model
+b %>% vetiver_pin_write(v)
+
+```
+
+
