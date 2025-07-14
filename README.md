@@ -1,4 +1,4 @@
-# 👨‍💻 Developer Salary Prediction (Stack Overflow 2024)
+# Developer Salary Prediction (Stack Overflow 2024)
 ![R](https://img.shields.io/badge/language-R-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/deployed-HuggingFace-blue)
@@ -50,17 +50,16 @@ All categorical variables were converted to factors, then one-hot encoded for mo
 
 ## 📈 Sample Visualizations
 
-#### 🔹 Top Developer Roles  
-<img src="assets/top_roles.png" width="50%"/>
-
-#### 🔹 Organization Size Distribution  
-<img src="assets/org_size.png" width="50%"/>
-
-#### 🔹 Remote Work Setup  
-<img src="assets/remote_work_pie.png" width="50%"/>
-
-#### 🔹 Salary by Remote Work Arrangement  
-<img src="assets/salary_by_work_mode.png" width="50%"/>
+<table>
+  <tr>
+    <td><strong>Top Developer Roles</strong><br><img src="assets/top_roles.png" width="95%"/></td>
+    <td><strong>Organization Size Distribution</strong><br><img src="assets/org_size.png" width="95%"/></td>
+  </tr>
+  <tr>
+    <td><strong>Remote Work Setup</strong><br><img src="assets/remote_work_pie.png" width="95%"/></td>
+    <td><strong>Salary by Remote Work Mode</strong><br><img src="assets/salary_by_work_mode.png" width="95%"/></td>
+  </tr>
+</table>
 
 ---
 
