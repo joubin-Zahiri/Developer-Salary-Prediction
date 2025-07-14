@@ -90,7 +90,7 @@ These results reflect realistic limitations of survey-based predictions, which m
 ## 🔗 Live Apps
 
 - 🔍 [Shiny App (Interactive Tool)](https://huggingface.co/spaces/joooobin/salary-predictor-shiny)  
-- 🧪 [Plumber API Endpoint](https://joooobin-salary-predictor-api.hf.space/__docs__)  
+- 🧪 [Plumber API Endpoint](https://joooobin-salary-predictor-api.hf.space/__docs__/)  
 - 🐳 [API Docker Space](https://huggingface.co/spaces/joooobin/salary-predictor-api)
 
 📷 QR Code to access Shiny App:  
