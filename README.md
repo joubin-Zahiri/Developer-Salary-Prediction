@@ -1,102 +1,99 @@
-# Developer Salary Prediction (Stack Overflow 2024 Survey)
 
+#  Developer Salary Prediction (Stack Overflow 2024)
 ![R](https://img.shields.io/badge/language-R-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/deployed-HuggingFace-blue)
 
-### 📌 Project Overview
+Predicts developer salaries in the United States using the 2024 Stack Overflow Developer Survey. This project explores how background variables such as experience, role, education level, company size, and remote work arrangement influence annual compensation.
 
-This project builds a **machine learning model** to predict **annual developer salaries** in the United States, using data from the **2024 Stack Overflow Developer Survey**.
+## 📌 Project Highlights
 
-The main goal was to explore how various **personal** and **professional factors** — like **years of experience**, **developer role**, **education level**, **company size**, and **remote work status** — influence compensation outcomes in the tech industry.
-
-After testing several algorithms, I selected **XGBoost regression** due to its strong performance on structured survey data. I also applied **feature engineering**, including a nonlinear **experience squared** term, to better capture salary trends across career stages.
-
-🛠️ The full workflow — including **data cleaning**, **model training**, and **evaluation** — is documented in the R Markdown file: `Final_code.Rmd`.
-
-👉 Scroll down for a link to the live **Shiny app**, where users can input their information and get a salary prediction.
-
-
-### Key Project Steps
-
-- Load and filter the raw survey dataset
-- Retain only U.S.-based responses with valid salary data
-- Encode categorical variables as factors
-- Engineer a squared experience term (`years_code_pro_sq`) to capture nonlinear effects
-- Split the data into training and testing sets (80/20)
-- Train an XGBoost regression model with tuned hyperparameters
-- Evaluate model performance using R² and RMSE
-
-Note: While feature importance was computed during modeling, no visualizations of feature importance were included in this version.
-
-The main goal of this project was to develop a Shiny app that allows users to input key features and receive a predicted salary based on the trained model.
+- 🧠 Built a predictive model using XGBoost regression  
+- 📊 Cleaned and transformed survey data from 65,000+ responses  
+- 🚀 Deployed as both a **Shiny App** and **Plumber API** using Hugging Face  
 
 ---
 
-## Dataset Description
+## 🗃️ Data Source & Metadata
 
-This project uses the public dataset from the 2024 Stack Overflow Annual Developer Survey, which gathered responses from over 65,000 developers worldwide in May 2024.
+The dataset comes from the [2024 Stack Overflow Developer Survey](https://survey.stackoverflow.co/2024/), released by the #TidyTuesday community.
 
-For this project, the dataset was filtered to include:
-- Only respondents from the United States
-- Only responses with non-missing salary values
+- 65,000+ responses worldwide  
+- U.S.-only data filtered for analysis (~4,400 rows)  
+- Survey includes:  
+  - Single-answer formatting  
+  - Label mappings via crosswalk  
+  - Survey metadata  
 
-After cleaning and filtering, the final dataset contained over 4,400 responses.
-
-Key variables used in the model:
-- `years_code_pro` — Years of professional coding experience
-- `dev_type_label` — Developer role
-- `ed_level_label` — Education level
-- `org_size_label` — Company size
-- `remote_work_label` — Work arrangement
-- `years_code_pro_sq` — Experience squared (engineered feature)
+**Key Files Used:**
+- `stackoverflow_survey_single_response.csv` – core dataset  
+- `qname_levels_single_response_crosswalk.csv` – label decoder  
+- `stackoverflow_survey_questions.csv` – metadata  
 
 ---
 
-## Modeling Approach
+## 📊 Dataset Overview
 
-### Why XGBoost?
+After cleaning and preprocessing, we kept U.S.-based developers with valid salary data. Below are the final variables used for modeling:
 
-After testing various regression models, XGBoost was selected due to its:
-- Ability to handle categorical and numeric variables (after appropriate preprocessing)
-- Capacity to model nonlinear relationships
-- Strong performance with imbalanced and noisy survey data
+| Variable              | Description                                         | Type        |
+|----------------------|-----------------------------------------------------|-------------|
+| `years_code_pro`     | Years of professional coding experience             | Numeric     |
+| `years_code_pro_sq`  | Experience squared (engineered for nonlinearity)    | Numeric     |
+| `dev_type_grouped`   | Primary developer role (23 levels)                  | Categorical |
+| `org_size_label`     | Organization size (9 levels)                        | Categorical |
+| `ed_level_label`     | Education level (6 levels)                          | Categorical |
+| `remote_work_label`  | Work setup (Remote, Hybrid, In-person)              | Categorical |
 
-### Model Configuration
-
-- Algorithm: XGBoost Regressor
-- Train/Test Split: 80/20
-- Engineered Feature: `years_code_pro_sq` (experience squared)
-
-### Performance Metrics
-
-- R²: 0.319 (explains approximately 31.9% of the variance in salaries)
-- RMSE: ~$57,385
-
-The relatively modest R² is expected given the nature of the survey data, which contains many categorical variables and other unobserved factors that influence compensation. Despite this, the model identifies important patterns and provides a meaningful basis for interactive prediction.
+All categorical variables were converted to factors, then one-hot encoded for modeling.
 
 ---
 
-## Shiny App Deployment
+## 📈 Sample Visualizations
 
-This model is deployed in a live Shiny application. Users can enter their information (role, education, experience, company size, work setup) to estimate their expected salary based on the trained model.
+#### 🔹 Top Developer Roles  
+![Top Roles](assets/top_roles.png)
 
-Use the app here:  
-**[Launch Salary Predictor](https://huggingface.co/spaces/joooobin/salary-predictor-shiny)**
+#### 🔹 Organization Size Distribution  
+![Org Size](assets/org_size.png)
+
+#### 🔹 Remote Work Setup  
+![Remote Work](assets/remote_work_pie.png)
+
+#### 🔹 Salary by Remote Work Arrangement  
+![Salary vs Remote](assets/salary_by_work_mode.png)
 
 ---
 
-## Data Source and Metadata
+## ⚙️ Modeling Approach
 
-This dataset was curated as part of the #TidyTuesday project. The data includes:
-- 65,000+ developer responses
-- Cleaned single-response questions
-- Integer-encoded variables with label mappings via a crosswalk file
+After experimentation, XGBoost was selected as the final model due to:
 
-More information and raw data files are available on the TidyTuesday GitHub repository:  
-https://github.com/rfordatascience/tidytuesday/tree/master/data/2024/2024-09-03
+- Strong tabular data performance  
+- Robustness to feature noise  
+- Ability to capture non-linear trends  
 
-Key files:
-- `stackoverflow_survey_single_response.csv`: Main dataset used
-- `qname_levels_single_response_crosswalk.csv`: Categorical value labels
-- `stackoverflow_survey_questions.csv`: Full list of survey questions
+### 📌 Pipeline Overview
+
+1. Data cleaning & wrangling  
+2. Feature engineering (e.g., squared terms)  
+3. Train/test split (80/20)  
+4. XGBoost training with tuned hyperparameters  
+
+### 📊 Model Performance
+
+- **R²** = 0.319 (explains ~32% of salary variance)  
+- **RMSE** ≈ $57,385  
+
+These results reflect realistic limitations of survey-based predictions, which may miss hidden or unrecorded salary drivers. Still, the model captures important salary patterns effectively.
+
+---
+
+## 🔗 Live Apps
+
+- 🔍 [Shiny App (Interactive Tool)](https://huggingface.co/spaces/joooobin/salary-predictor-shiny)  
+- 🧪 [Plumber API Endpoint](https://joooobin-salary-predictor-api.hf.space/__docs__)  
+- 🐳 [API Docker Space](https://huggingface.co/spaces/joooobin/salary-predictor-api)
+
+📷 QR Code to access Shiny App:  
+![QR Code](assets/joubin-shiny-400.png)
