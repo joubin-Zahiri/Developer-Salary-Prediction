@@ -1,5 +1,4 @@
-
-#  Developer Salary Prediction (Stack Overflow 2024)
+# 👨‍💻 Developer Salary Prediction (Stack Overflow 2024)
 ![R](https://img.shields.io/badge/language-R-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/deployed-HuggingFace-blue)
@@ -52,16 +51,16 @@ All categorical variables were converted to factors, then one-hot encoded for mo
 ## 📈 Sample Visualizations
 
 #### 🔹 Top Developer Roles  
-![Top Roles](assets/top_roles.png)
+<img src="assets/top_roles.png" width="50%"/>
 
 #### 🔹 Organization Size Distribution  
-![Org Size](assets/org_size.png)
+<img src="assets/org_size.png" width="50%"/>
 
 #### 🔹 Remote Work Setup  
-![Remote Work](assets/remote_work_pie.png)
+<img src="assets/remote_work_pie.png" width="50%"/>
 
 #### 🔹 Salary by Remote Work Arrangement  
-![Salary vs Remote](assets/salary_by_work_mode.png)
+<img src="assets/salary_by_work_mode.png" width="50%"/>
 
 ---
 
@@ -96,4 +95,4 @@ These results reflect realistic limitations of survey-based predictions, which m
 - 🐳 [API Docker Space](https://huggingface.co/spaces/joooobin/salary-predictor-api)
 
 📷 QR Code to access Shiny App:  
-![QR Code](assets/joubin-shiny-400.png)
+<img src="assets/joubin-shiny-400.png" width="25%"/>
