@@ -33,7 +33,7 @@ The dataset comes from the [2024 Stack Overflow Developer Survey](https://survey
 
 ## 📊 Dataset Overview
 
-After cleaning and preprocessing, we kept U.S.-based developers with valid salary data. Below are the final variables used for modeling:
+After cleaning and preprocessing, I kept U.S.-based developers with valid salary data. Below are the final variables used for modeling:
 
 | Variable              | Description                                         | Type        |
 |----------------------|-----------------------------------------------------|-------------|
