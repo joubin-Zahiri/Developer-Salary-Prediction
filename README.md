@@ -1,10 +1,21 @@
 # Developer Salary Prediction (Stack Overflow 2024 Survey)
 
-## Project Overview
+![R](https://img.shields.io/badge/language-R-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/deployed-HuggingFace-blue)
 
-This project builds a machine learning model to predict developers’ annual compensation in the United States, using data from the 2024 Stack Overflow Developer Survey. It applies XGBoost regression along with data preprocessing and basic feature engineering to understand how factors such as experience, education, developer role, company size, and remote work status influence salary.
+### 📌 Project Overview
 
-The R Markdown file used for this analysis is named `Final_code.Rmd`.
+This project builds a **machine learning model** to predict **annual developer salaries** in the United States, using data from the **2024 Stack Overflow Developer Survey**.
+
+The main goal was to explore how various **personal** and **professional factors** — like **years of experience**, **developer role**, **education level**, **company size**, and **remote work status** — influence compensation outcomes in the tech industry.
+
+After testing several algorithms, I selected **XGBoost regression** due to its strong performance on structured survey data. I also applied **feature engineering**, including a nonlinear **experience squared** term, to better capture salary trends across career stages.
+
+🛠️ The full workflow — including **data cleaning**, **model training**, and **evaluation** — is documented in the R Markdown file: `Final_code.Rmd`.
+
+👉 Scroll down for a link to the live **Shiny app**, where users can input their information and get a salary prediction.
+
 
 ### Key Project Steps
 
