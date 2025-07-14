@@ -48,7 +48,7 @@ All categorical variables were converted to factors, then one-hot encoded for mo
 
 ---
 
-## 📈 Sample Visualizations
+## 📈  Data Visualizations
 
 <table>
   <tr>
