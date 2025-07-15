@@ -67,9 +67,9 @@ All categorical variables were converted to factors, then one-hot encoded for mo
 
 After experimentation, XGBoost was selected as the final model due to:
 
-- Strong tabular data performance  
-- Robustness to feature noise  
-- Ability to capture non-linear trends  
+- Strong performance with structured datasets  
+- Ability to handle noisy features  
+- capture non-linear trends  
 
 ### 📌 Pipeline Overview
 
